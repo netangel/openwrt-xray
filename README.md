@@ -11,7 +11,7 @@ Install
 1. Drop the files onto OpenWRT (22.03 and higher) router
 2. Run `install_xray.sh`: `chmod +x /root/install_xray.sh && /root/install_xray.sh`
 3. Configure this installation:
-- In `/etc/xray/config/outbounds.jsonc` add your connection details (but be carefult with specified streamSettings->sockOpt, these are required)
+- In `/etc/xray/config/outbounds.jsonc` add your connection details (but be careful with specified streamSettings->sockOpt, these are required)
 - You can optionally add excluding/blocking rules to `/etc/xray/custom_rules.sh`, see possible additions in `fwd_functions.sh` beside it.
 4. Enable the `xray` service in LuCI (System -> Startup, it should be at the end of the list) and reboot your router.
 

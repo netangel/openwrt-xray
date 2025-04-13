@@ -1,0 +1,8 @@
+{
+    "log": {
+        // "access": "/etc/xray/log/access.log",
+        // "error": "/etc/xray/log/error.log",
+        "loglevel": "none",
+        "dnsLog": true
+    }
+}

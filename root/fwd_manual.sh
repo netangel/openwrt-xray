@@ -3,4 +3,4 @@
 # Source the function definitions
 . /etc/xray/fwd_functions.sh
 
-direct_ip "10.241.1.3"
+direct_ip "192.168.1.3"

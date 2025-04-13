@@ -1,0 +1,19 @@
+{
+    "dns": {
+        "tag": "dns-in",
+        "hosts": {
+            "dns.google": "8.8.8.8"
+        },
+        "servers": [
+            "https://dns.google/dns-query",
+            {
+                "address": "localhost",
+                "disableFallback": true,
+                "domains": [
+                    "regexp:.*\\.lan"
+                ]
+            }
+        ],
+        "queryStrategy": "UseIPv4"
+    }
+}

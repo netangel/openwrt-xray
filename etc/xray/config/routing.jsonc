@@ -1,0 +1,111 @@
+{
+  "routing": {
+    "domainStrategy": "IPIfNonMatch",
+    "rules": [
+      // Capture DNS
+      {
+        "inboundTag": "tproxy",
+        "outboundTag": "dns-out",
+        "port": 53
+      },
+      // Block QUIC
+      {
+        "inboundTag": "tproxy",
+        "outboundTag": "block",
+        "protocol": [
+          "quic"
+        ]
+      },
+      // Force DNS to go through direct
+      // If needed, you can force DNS to go through other outbound using tags for specific servers in dns.jsonc
+      {
+        "inboundTag": "dns-in",
+        "outboundTag": "direct"
+      },
+      // Force specific source IPs to go direct
+      {
+        "inboundTag": "tproxy",
+        "outboundTag": "direct",
+        "source": [
+          "192.168.2.255",
+          "192.168.2.254"
+        ]
+      },
+      // Block common ads and other stuff
+      {
+        "inboundTag": "tproxy",
+        "outboundTag": "block",
+        "domain": [
+          "geosite:category-ads-all",
+          "google-analytics",
+          "analytics.yandex",
+          "appcenter.ms",
+          "app-measurement.com",
+          "firebase.io",
+          "crashlytics.com"
+        ]
+      },
+      // Force BitTorrent to go through direct
+      {
+        "inboundTag": "tproxy",
+        "outboundTag": "direct",
+        "protocol": "bittorrent"
+      },
+      // Explicitly force direct (domains)
+      {
+        "inboundTag": "tproxy",
+        "outboundTag": "direct",
+        "domain": [
+          "regexp:^([\\w\\-\\.]+\\.)ru$", // .ru
+          // "regexp:^([\\w\\-\\.]+\\.)su$", // .su
+          "regexp:^([\\w\\-\\.]+\\.)xn--p1ai$", // .рф
+          "regexp:^([\\w\\-\\.]+\\.)xn--p1acf$", // .рус
+          "regexp:^([\\w\\-\\.]+\\.)xn--80asehdb$", // .онлайн
+          "regexp:^([\\w\\-\\.]+\\.)xn--c1avg$", // .орг
+          "regexp:^([\\w\\-\\.]+\\.)xn--80aswg$", // .сайт
+          "regexp:^([\\w\\-\\.]+\\.)xn--80adxhks$", // .москва
+          "regexp:^([\\w\\-\\.]+\\.)moscow$", //  .moscow
+          "regexp:^([\\w\\-\\.]+\\.)xn--d1acj3b$", // .дети
+          "regexp:^([\\w\\-\\.]+\\.)yandex$", // .yandex
+          "geosite:category-ru",
+          "geosite:category-gov-ru",
+          "geosite:yandex",
+          "geosite:steam",
+          "geosite:vk",
+          "geosite:category-gov-ru",
+          // "regexp:^assets(\\d*?)\\.xboxlive\\.com$",
+          "domain:rt.ru",
+          "domain:ngenix.net",
+          "domain:plex.tv",
+          "domain:kaspersky.com",
+          "domain:koronapay.com",
+          "domain:binance.com",
+          "domain:raiffeisen.ru",
+          "geosite:xiaomi",
+          "geosite:mihoyo",
+          "domain:xsolla.com",
+          "domain:download.developer.apple.com",
+          // "domain:aeza.net",
+          "domain:veesp.com"
+        ]
+      },
+      // Explicitly force direct (IPs)
+      {
+        "inboundTag": "tproxy",
+        "outboundTag": "direct",
+        "ip": [
+          "geoip:ru",
+          "geoip:am"
+        ]
+      },
+      // No rules found? Go vless-reality
+      {
+        "inboundTag": [
+          "tproxy",
+          "dns-in"
+        ],
+        "outboundTag": "vless-reality"
+      }
+    ]
+  }
+}

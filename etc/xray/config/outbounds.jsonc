@@ -1,17 +1,14 @@
 {
-    "outbounds":
-    [
+    "outbounds": [
         {
+            "tag": "vless-reality",
             "protocol": "vless",
-            "settings":
-            {
-                "vnext":
-                [
+            "settings": {
+                "vnext": [
                     {
                         "address": "1.1.1.1",
                         "port": 443,
-                        "users":
-                        [
+                        "users": [
                             {
                                 "encryption": "none",
                                 "flow": "xtls-rprx-vision",
@@ -22,39 +19,52 @@
                     }
                 ]
             },
-            "streamSettings":
-            {
+            "streamSettings": {
                 "network": "tcp",
-                "realitySettings":
-                {
+                "realitySettings": {
                     "fingerprint": "chrome",
                     "publicKey": "",
                     "serverName": "",
                     "shortId": "",
                     "spiderX": "/"
                 },
-                "security": "reality"
-            },
-            "tag": "vless-reality"
+                "security": "reality",
+                // Important: This is required for rules to work correctly!
+                "sockopt": {
+                    "domainStrategy": "UseIP",
+                    "mark": 2
+                }
+            }
         },
         {
+            "tag": "direct",
             "protocol": "freedom",
-            "tag": "direct"
-        },
-        {
-            "protocol": "blackhole",
-            "settings":
-            {
-                "response":
-                {
-                    "type": "http"
+            "streamSettings": {
+                "sockopt": {
+                    "mark": 2
                 }
             },
-            "tag": "block"
+            "settings": {
+                "domainStrategy": "UseIP"
+            }
         },
         {
+            "tag": "block",
+            "protocol": "blackhole",
+            "settings": {
+                "response": {
+                    "type": "http"
+                }
+            }
+        },
+        {
+            "tag": "dns-out",
             "protocol": "dns",
-            "tag": "dns"
+            "streamSettings": {
+                "sockopt": {
+                    "mark": 2
+                }
+            }
         }
     ]
 }

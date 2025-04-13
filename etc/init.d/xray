@@ -25,7 +25,7 @@ start_service() {
 	config_get dialer "config" "dialer"
 	config_get format "config" "format" "json"
 
-	# runs iptables setup
+	# runs nftables setup
     /etc/xray/startup.sh
 
 	procd_open_instance "$CONF"

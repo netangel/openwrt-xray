@@ -1,63 +1,69 @@
 #!/bin/sh
 
-# Function to add iptables rules for a specific IP and port
+# Function to add nftables rules for a specific IP and port
 direct_port_for_ip() {
     ip=$1
     port=$2
 
-    iptables -t mangle -A XRAY -d "$ip"/32 -p tcp --dport "$port" -j RETURN
-    iptables -t mangle -A XRAY -d "$ip"/32 -p udp --dport "$port" -j RETURN
-    iptables -t mangle -A XRAY -s "$ip"/32 -p tcp --sport "$port" -j RETURN
-    iptables -t mangle -A XRAY -s "$ip"/32 -p udp --sport "$port" -j RETURN
+    nft insert rule ip xray prerouting ip daddr "$ip" tcp dport "$port" counter return
+    nft insert rule ip xray prerouting ip daddr "$ip" udp dport "$port" counter return
+    nft insert rule ip xray output ip daddr "$ip" tcp dport "$port" counter return
+    nft insert rule ip xray output ip daddr "$ip" udp dport "$port" counter return
 }
 
-# Function to add iptables rules for a single port without specifying IP
+# Function to add nftables rules for a single port without specifying IP
 direct_port() {
     port=$1
 
-    iptables -t mangle -A XRAY -p tcp --dport "$port" -j RETURN
-    iptables -t mangle -A XRAY -p udp --dport "$port" -j RETURN
-    iptables -t mangle -A XRAY -p tcp --sport "$port" -j RETURN
-    iptables -t mangle -A XRAY -p udp --sport "$port" -j RETURN
+    nft insert rule ip xray prerouting tcp dport "$port" counter return
+    nft insert rule ip xray prerouting udp dport "$port" counter return
+    nft insert rule ip xray output tcp dport "$port" counter return
+    nft insert rule ip xray output udp dport "$port" counter return
 }
 
-# Function to add iptables rules for a range of ports for a specific IP
+# Function to add nftables rules for a range of ports for a specific IP
 direct_port_range_for_ip() {
     ip=$1
     start_port=$2
     end_port=$3
 
-    port=$start_port
-    while [ "$port" -le "$end_port" ]; do
-        direct_port_for_ip "$ip" "$port"
-        port=$((port + 1))
-    done
+    nft insert rule ip xray prerouting ip daddr "$ip" tcp dport { "$start_port"-"$end_port" } counter return
+    nft insert rule ip xray prerouting ip daddr "$ip" udp dport { "$start_port"-"$end_port" } counter return
+    nft insert rule ip xray output ip daddr "$ip" tcp dport { "$start_port"-"$end_port" } counter return
+    nft insert rule ip xray output ip daddr "$ip" udp dport { "$start_port"-"$end_port" } counter return
 }
 
-# Function to add iptables rules for a range of ports without specifying IP
+# Function to add nftables rules for a range of ports without specifying IP
 direct_port_range() {
     start_port=$1
     end_port=$2
 
-    port=$start_port
-    while [ "$port" -le "$end_port" ]; do
-        direct_port "$port"
-        port=$((port + 1))
-    done
+    nft insert rule ip xray prerouting tcp dport { "$start_port"-"$end_port" } counter return
+    nft insert rule ip xray prerouting udp dport { "$start_port"-"$end_port" } counter return
+    nft insert rule ip xray output tcp dport { "$start_port"-"$end_port" } counter return
+    nft insert rule ip xray output udp dport { "$start_port"-"$end_port" } counter return
 }
 
-# Function to add iptables rules for an IP without specifying ports
+# Function to add nftables rules for an IP without specifying ports
 direct_ip() {
     ip=$1
 
-    iptables -t mangle -A XRAY -d "$ip"/32 -j RETURN
-    iptables -t mangle -A XRAY -s "$ip"/32 -j RETURN
+    nft insert rule ip xray prerouting ip saddr "$ip" counter return
+    nft insert rule ip xray output ip saddr "$ip" counter return
+    nft insert rule ip xray prerouting ip daddr "$ip" counter return
+    nft insert rule ip xray output ip daddr "$ip" counter return
 }
 
-# Function to add iptables rules for blocking IP
+# Function to add nftables rules for blocking IP
 block_ip() {
     ip=$1
 
-    iptables -I FORWARD 1 -d "$ip"/32 -j DROP
-    iptables -I FORWARD 1 -s "$ip"/32 -j DROP
+    # Block in prerouting chain
+    nft insert rule ip xray prerouting ip daddr "$ip" counter drop
+    nft insert rule ip xray prerouting ip saddr "$ip" counter drop
+    
+    # Block in output chain
+    nft insert rule ip xray output ip daddr "$ip" counter drop
+    nft insert rule ip xray output ip saddr "$ip" counter drop
 }
+

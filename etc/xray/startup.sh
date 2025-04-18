@@ -12,7 +12,23 @@ fi
 
 # Get WAN interface IP address using the device name, excluding localhost and private IPs
 # Comment this out, if it doesn't work for you
-WAN_IP=$(ip addr show $WAN_DEVICE | grep 'inet ' | awk '{print $2}' | cut -d/ -f1 | grep -v '^127\.' | grep -v '^192\.168\.')
+
+# Try to get WAN IP with retries
+MAX_RETRIES=30
+RETRY_INTERVAL=2
+for i in $(seq 1 $MAX_RETRIES); do
+    echo "Attempt $i to get WAN IP..."
+    WAN_IP=$(ip addr show $WAN_DEVICE | grep 'inet ' | awk '{print $2}' | cut -d/ -f1 | grep -v '^127\.' | grep -v '^192\.168\.')
+    if [ ! -z "$WAN_IP" ]; then
+        echo "Successfully got WAN IP: $WAN_IP"
+        break
+    fi
+    if [ $i -lt $MAX_RETRIES ]; then
+        echo "No WAN IP found, retrying in $RETRY_INTERVAL seconds..."
+        sleep $RETRY_INTERVAL
+    fi
+done
+
 # WAN_IP="1.1.1.1"
 
 if [ -z "$WAN_IP" ]; then

@@ -55,7 +55,7 @@ set_led_state() {
 # Check Xray health
 check_xray_health() {
     # Check if xray process is running
-    if ! pgrep -x xray > /dev/null 2>&1; then
+    if ! pgrep -x /usr/bin/xray > /dev/null 2>&1; then
         return 1
     fi
 

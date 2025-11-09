@@ -1,0 +1,49 @@
+#!/bin/sh /etc/rc.common
+
+USE_PROCD=1
+START=99
+STOP=01
+
+MONITOR_SCRIPT="/etc/xray/led_monitor.sh"
+
+start_service() {
+	# Check if xray is enabled in configuration
+	config_load "xray"
+
+	local enabled
+	config_get_bool enabled "enabled" "enabled" "0"
+	[ "$enabled" -eq "1" ] || return 1
+
+	# Only start if the monitor script exists
+	[ -f "$MONITOR_SCRIPT" ] || {
+		echo "LED monitor script not found at $MONITOR_SCRIPT"
+		return 1
+	}
+
+	procd_open_instance xray_led
+	procd_set_param command /bin/sh "$MONITOR_SCRIPT"
+	procd_set_param stdout 0
+	procd_set_param stderr 1
+	procd_set_param respawn ${respawn_threshold:-3600} ${respawn_timeout:-5} ${respawn_retry:-5}
+	procd_close_instance
+}
+
+stop_service() {
+	# Reset LEDs to default state when stopping
+	local led_blue="/sys/class/leds/blue:run"
+	local led_white="/sys/class/leds/white:system"
+
+	[ -d "$led_blue" ] && {
+		echo 0 > "$led_blue/brightness"
+		echo none > "$led_blue/trigger" 2>/dev/null
+	}
+	[ -d "$led_white" ] && {
+		echo 0 > "$led_white/brightness"
+		echo none > "$led_white/trigger" 2>/dev/null
+	}
+}
+
+reload_service() {
+	stop
+	start
+}

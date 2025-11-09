@@ -10,6 +10,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - Integrated DNS interception with custom resolution
 - Selective traffic bypass and blocking rules
 - Modern nftables firewall rules (not legacy iptables)
+- LED status monitoring for GL.iNet routers (visual health indicators)
 
 **Type:** Configuration and deployment package (Bash scripts, JSONC config files)
 **License:** MIT
@@ -45,7 +46,9 @@ root/                          # Installation and utility scripts
 
 etc/
 ├── config/xray              # UCI service configuration
-├── init.d/xray              # OpenWRT procd service manager
+├── init.d/
+│   ├── xray                 # OpenWRT procd service manager (main service)
+│   └── xray_led             # LED monitoring service manager
 ├── logrotate.d/xray         # Log rotation (hourly, 24-hour retention)
 └── xray/                    # Xray runtime directory
     ├── config/              # Configuration files (modular JSONC)
@@ -59,6 +62,7 @@ etc/
     ├── startup.sh           # Called on service start (loads nftables)
     ├── fwd_functions.sh     # Function library for adding forwarding rules
     ├── custom_rules.sh      # User-editable custom rules (empty by default)
+    ├── led_monitor.sh       # LED status monitoring script (GL.iNet routers)
     ├── revert.sh            # Cleanup/revert script
     └── *.dat                # geoip.dat, geosite.dat, LoyalsoldierSite.dat
 
@@ -84,6 +88,12 @@ chmod +x /root/install_xray.sh && /root/install_xray.sh
 /etc/init.d/xray restart          # Faster than stop+start
 /etc/init.d/xray status
 
+# LED monitoring service (GL.iNet routers only)
+/etc/init.d/xray_led enable       # Enable LED status monitoring
+/etc/init.d/xray_led start
+/etc/init.d/xray_led stop
+/etc/init.d/xray_led status
+
 # Quick restart (shortcut)
 /root/restart_xray.sh
 
@@ -108,6 +118,10 @@ vi /etc/xray/custom_rules.sh
 # Check service status and logs
 /etc/init.d/xray status
 logread -f -e xray              # Follow Xray logs
+
+# Check LED monitor (GL.iNet routers)
+ps | grep led_monitor           # Verify LED monitor is running
+/etc/init.d/xray_led status
 
 # Verify nftables rules are loaded
 nft list table ip xray
@@ -136,8 +150,10 @@ nslookup example.com 127.0.0.1  # Should use Xray DNS
 |------|---------|----------|-------|
 | `/root/install_xray.sh` | Installation orchestrator | Yes | Install xray package and all dependencies |
 | `/etc/init.d/xray` | OpenWRT service control | No | Managed by system; uses procd |
+| `/etc/init.d/xray_led` | LED monitor service | No | Optional; GL.iNet routers only |
 | `/etc/config/xray` | UCI service config | Yes | Minimal config (mostly defaults) |
 | `/etc/xray/startup.sh` | Runtime setup | No | Auto-called on service start |
+| `/etc/xray/led_monitor.sh` | LED status monitor | No | Updates router LEDs based on Xray health |
 | `/etc/xray/nft.conf` | nftables rules | No | Auto-generated; defines firewall chains |
 | `/etc/xray/fwd_functions.sh` | Rule function library | No | Helper functions for custom_rules.sh |
 | `/etc/xray/custom_rules.sh` | User rules | Yes | Only place for custom forwarding rules |
@@ -214,6 +230,31 @@ User-defined rules using function library from `fwd_functions.sh`. Examples:
 # See fwd_functions.sh for available functions
 ```
 
+### LED Status Indicators (GL.iNet Routers)
+The optional LED monitoring service provides visual feedback of Xray health:
+
+**LED States:**
+- **White LED (system)** - Xray running and healthy (all checks passing)
+- **Blue LED (run)** - Xray starting or transitioning (first 30 seconds)
+- **Blinking Blue LED** - Xray failed (process running but nftables/routing rules missing)
+- **Both LEDs off** - Xray stopped or disabled
+
+**Health Checks:**
+1. Xray process running (`pgrep -x xray`)
+2. nftables rules loaded (`nft list table ip xray`)
+3. Routing rules configured (`ip rule list`)
+
+Check interval: 10 seconds
+
+**Installation:**
+```bash
+chmod +x /etc/xray/led_monitor.sh
+chmod +x /etc/init.d/xray_led
+/etc/init.d/xray_led enable && /etc/init.d/xray_led start
+```
+
+**Note:** The LED monitor automatically respects the xray service enabled/disabled state from `/etc/config/xray`.
+
 ## Important Implementation Notes
 
 ### Traffic Interception Flow
@@ -272,6 +313,13 @@ All `/etc/xray/config/*.jsonc` files are merged at runtime:
 - Check log rotation is working: `/usr/sbin/logrotate -f /etc/logrotate.d/xray`
 - Monitor memory: `free -h`
 - Check nftables counter growth: `nft list table ip xray`
+
+**LED not showing status (GL.iNet routers):**
+- Verify LED monitor is running: `ps | grep led_monitor`
+- Check service status: `/etc/init.d/xray_led status`
+- Verify LED paths exist: `ls /sys/class/leds/`
+- Check if xray is enabled: `uci get xray.enabled.enabled`
+- Manually test LED: `echo 255 > /sys/class/leds/white:system/brightness`
 
 ## Development Workflow
 

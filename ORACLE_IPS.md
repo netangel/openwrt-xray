@@ -41,11 +41,12 @@ The solution uses **layered packet filtering** with different nftables prioritie
 ## Files
 
 ```
-/etc/config/firewall             # UCI firewall config (includes oracle_ips_block.nft)
-/etc/xray/oracle_ips_block.nft   # nftables blocking rules (loaded by fw4)
-/etc/xray/config/routing.jsonc   # Xray routing rule (lines 92-126, forces to proxy)
-/root/oracle_ips_disable.sh      # Manual disable script (with confirmation)
-/root/oracle_ips_status.sh       # Check current status
+/etc/config/firewall                    # UCI firewall config (includes loader script)
+/etc/xray/oracle_ips_block_loader.sh    # Script to load nftables rules (called by fw4)
+/etc/xray/oracle_ips_block.nft          # nftables blocking rules
+/etc/xray/config/routing.jsonc          # Xray routing rule (lines 92-126, forces to proxy)
+/root/oracle_ips_disable.sh             # Manual disable script (with confirmation)
+/root/oracle_ips_status.sh              # Check current status
 ```
 
 ## Installation
@@ -55,7 +56,7 @@ The blocking rules are **enabled by default** after you deploy the configuration
 ```bash
 # On the router, after deploying all files:
 chmod +x /root/oracle_ips_*.sh
-chmod +x /etc/xray/oracle_ips_block.nft
+chmod +x /etc/xray/oracle_ips_block_loader.sh
 
 # Reload firewall to activate blocking
 fw4 reload
@@ -69,7 +70,7 @@ fw4 reload
 ### Boot Sequence
 
 1. **OpenWRT boot** → fw4 firewall starts (priority ~20)
-2. **fw4 loads** `/etc/xray/oracle_ips_block.nft` via UCI config
+2. **fw4 executes** `/etc/xray/oracle_ips_block_loader.sh` which loads nftables rules
 3. **Oracle IPs BLOCKED** in forward/output chains
 4. **Xray service starts** (priority 99)
 5. **Xray loads** `/etc/xray/nft.conf` with tproxy rules

@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 # Manually disable Oracle Cloud IPs fail-safe blocking
 # WARNING: This allows Oracle IPs to be accessed directly (not through proxy)
 

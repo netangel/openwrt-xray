@@ -137,7 +137,7 @@ config forwarding
 # If xray is NOT running: packets reach forward chain → BLOCKED
 # To disable: uci set firewall.oracle_block.enabled='0' && uci commit && fw4 reload
 config include 'oracle_block'
-	option type 'nftables'
-	option path '/etc/xray/oracle_ips_block.nft'
+	option type 'script'
+	option path '/etc/xray/oracle_ips_block_loader.sh'
 	option enabled '1'
 

@@ -25,4 +25,4 @@ chmod +x /root/fwd_manual.sh
 # Oracle IPs management scripts
 chmod +x /root/oracle_ips_disable.sh
 chmod +x /root/oracle_ips_status.sh
-chmod +x /etc/xray/oracle_ips_block.nft
+chmod +x /etc/xray/oracle_ips_block_loader.sh

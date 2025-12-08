@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 # Check Oracle Cloud IPs fail-safe blocking status
 
 echo "=== Oracle IPs Fail-Safe Blocking Status ==="

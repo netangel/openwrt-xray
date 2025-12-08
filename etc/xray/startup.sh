@@ -47,6 +47,10 @@ ip rule add fwmark 1 table 100
 # Load nftables rules from nft.conf
 nft -f /etc/xray/nft.conf
 
+# Note: Oracle IPs fail-safe blocking is managed by UCI firewall (/etc/config/firewall)
+# The fw4 firewall loads /etc/xray/oracle_ips_block.nft on boot (before xray starts)
+# This blocks Oracle IPs by default. Xray's tproxy (above) intercepts them in prerouting.
+
 # Execute custom rules if they exist
 if [ -f /etc/xray/custom_rules.sh ]; then
     sh /etc/xray/custom_rules.sh

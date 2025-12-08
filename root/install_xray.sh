@@ -21,3 +21,8 @@ chmod +x /etc/xray/startup.sh
 chmod +x /etc/init.d/xray
 chmod +x /root/restart_xray.sh
 chmod +x /root/fwd_manual.sh
+
+# Oracle IPs management scripts
+chmod +x /root/oracle_ips_disable.sh
+chmod +x /root/oracle_ips_status.sh
+chmod +x /etc/xray/oracle_ips_block.nft
